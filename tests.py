@@ -45,6 +45,12 @@ class DuolingoTest(unittest.TestCase):
         mock_login.assert_called_once_with()
         mock_data.assert_called_once_with()
 
+    @patch("duolingo.Duolingo._get_data")
+    def test_password_login_raises_exception(self, mock_data):
+        with self.assertRaises(duolingo.DuolingoException):
+            duolingo.Duolingo(USERNAME, "password")
+        mock_data.assert_not_called()
+
 
 class DuolingoLoginTest(unittest.TestCase):
     lingo = None
