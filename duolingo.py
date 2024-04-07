@@ -62,6 +62,11 @@ class Duolingo(object):
         self.leader_data = None
         self.jwt = jwt
 
+        if password and (not jwt and not session_file):
+            raise DuolingoException(
+                "The Duolingo API no longer supports password login. You must provide a JWT or a session file."
+            )
+
         self.session.cookies.set_cookie(
             requests.cookies.create_cookie("jwt_token", self.jwt)
         )
