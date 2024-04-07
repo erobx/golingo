@@ -62,6 +62,10 @@ class Duolingo(object):
         self.leader_data = None
         self.jwt = jwt
 
+        self.session.cookies.set_cookie(
+            requests.cookies.create_cookie("jwt_token", self.jwt)
+        )
+
         if password or jwt or session_file:
             self._login()
         else:
