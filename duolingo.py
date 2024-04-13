@@ -545,8 +545,12 @@ class Duolingo(object):
         except ValueError:
             raise DuolingoException('Could not get translations')
 
-    def get_vocabulary(self, language_abbr=None):
-        """Get overview of user's vocabulary in a language."""
+    def get_vocabulary(self, language_abbr=None, source_language_abbr=None):
+        """Get overview of user's vocabulary in a language.
+
+        :param language_abbr: Language abbreviation of learning language
+        :param source_language_abbr: Language abbreviation of source language (default: user's UI language)
+        """
         if self.username != self._original_username:
             raise OtherUserException("Vocab cannot be listed when the user has been switched.")
 
@@ -554,7 +558,6 @@ class Duolingo(object):
             self._switch_language(language_abbr)
 
         current_courses = self.get_data_by_user_id()["currentCourse"]["pathSectioned"]
-
         progressed_skills=[]
         for section in current_courses:
             completedUnits = section["completedUnits"]
@@ -595,7 +598,7 @@ class Duolingo(object):
         current_index = 0
         data = []
         while True:
-            overview_url = f"https://www.duolingo.com/2017-06-30/users/{self.user_data.id}/courses/{language_abbr}/en/learned-lexemes?sortBy=ALPHABETICAL&startIndex={current_index}"
+            overview_url = f"https://www.duolingo.com/2017-06-30/users/{self.user_data.id}/courses/{language_abbr}/{source_language_abbr if source_language_abbr is not None else self.get_user_info()['ui_language']}/learned-lexemes?sortBy=ALPHABETICAL&startIndex={current_index}"
             overview_request = self._make_req(overview_url, data={
                 "lastTotalLexemeCount": 0,
                 "progressedSkills": progressed_skills
