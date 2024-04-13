@@ -260,7 +260,6 @@ class DuolingoLoginTest(unittest.TestCase):
         assert result != [just_over_length]
         assert result == [["aaaaaaaa"] * 1066, ["aaaaaaaa"]]
 
-    @unittest.skip("This feature may no longer be supported in the Duolingo API.")
     def test_get_vocabulary(self):
         response1 = self.lingo.get_vocabulary()
         response2 = self.lingo.get_vocabulary(self.lang)
