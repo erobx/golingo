@@ -659,34 +659,19 @@ class Duolingo(object):
                 voices.append(voice.replace('{}/'.format(language_abbr), ''))
         return voices
 
-    def get_audio_url(self, word, language_abbr=None, rand=True, voice=None):
-        # Check word is in vocab
-        if word is None:
-            raise DuolingoException('A word must be specified to use this function')
-        word = word.lower()
-        # Get default language abbr
-        if not language_abbr:
-            language_abbr = list(self.user_data.language_data.keys())[0]
-        if language_abbr not in self.user_data.language_data:
-            raise DuolingoException("This language is not one you are studying")
-        # Populate voice url dict
-        if self.voice_url_dict is None or language_abbr not in self.voice_url_dict:
-            self._populate_voice_url_dictionary(language_abbr)
-        # If no audio exists for a word, return None
-        if word not in self.voice_url_dict[language_abbr]:
-            return None
-        # Get word audio links
-        word_links = list(self.voice_url_dict[language_abbr][word])
-        # If a voice is specified, get that one or None
-        if voice:
-            for word_link in word_links:
-                if "/{}/".format(voice) in word_link:
-                    return word_link
-            return None
-        # If random, shuffle
-        if rand:
-            return random.choice(word_links)
-        return word_links[0]
+    def get_audio_url(self, word, language_abbr=None):
+        """
+        Get the audio URL for a given word in the user's vocabulary.
+        :param word: The word to retrieve the audio URL for.
+        :param language_abbr: (Optional) The language abbreviation for the vocabulary.
+        :return: The audio URL for the word.
+        :raises DuolingoException: If the word is not found in the user's vocabulary.
+        """
+        for vocabulary in self.get_vocabulary(language_abbr if language_abbr else self.get_languages(True)[0]):
+            if vocabulary['text'] == word:
+
+                return vocabulary['audioURL']
+        raise DuolingoException("Word not found in vocabulary of user. Please make sure to use the correct language abbreviation. If language_abbr=None the first possible language is used")
 
     def _populate_voice_url_dictionary(self, lang_abbr):
         if self.voice_url_dict is None:

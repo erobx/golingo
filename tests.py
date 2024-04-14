@@ -21,7 +21,8 @@ def _example_word(lang):
     """
     return {
         "de": "mann",
-        "es": "hombre"
+        "es": "hombre",
+        "it": "uomo",
     }.get(lang)
 
 
@@ -277,17 +278,16 @@ class DuolingoLoginTest(unittest.TestCase):
             assert "vocab_overview" in response
             assert isinstance(response["vocab_overview"], list)
 
-    @unittest.skip("This feature may no longer be supported in the Duolingo API.")
+
     def test_get_audio_url(self):
         # Setup
         word = _example_word(self.lang)
         # Test
-        response = self.lingo.get_audio_url(word)
+        response = self.lingo.get_audio_url(word,"en")
         assert isinstance(response, str)
         response = self.lingo.get_audio_url(word, self.lang)
         assert isinstance(response, str)
-        response = self.lingo.get_audio_url("zz")
-        assert response is None
+
 
     @unittest.skip("This feature may no longer be supported in the Duolingo API.")
     def test_get_word_definition_by_id(self):
