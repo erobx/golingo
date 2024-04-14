@@ -545,19 +545,75 @@ class Duolingo(object):
         except ValueError:
             raise DuolingoException('Could not get translations')
 
-    def get_vocabulary(self, language_abbr=None):
-        """Get overview of user's vocabulary in a language."""
+    def get_vocabulary(self, language_abbr=None, source_language_abbr=None):
+        """Get overview of user's vocabulary in a language.
+
+        :param language_abbr: Language abbreviation of learning language
+        :param source_language_abbr: Language abbreviation of source language (default: user's UI language)
+        """
         if self.username != self._original_username:
             raise OtherUserException("Vocab cannot be listed when the user has been switched.")
 
         if language_abbr and not self._is_current_language(language_abbr):
             self._switch_language(language_abbr)
 
-        overview_url = "https://www.duolingo.com/vocabulary/overview"
-        overview_request = self._make_req(overview_url)
-        overview = overview_request.json()
+        current_courses = self.get_data_by_user_id()["currentCourse"]["pathSectioned"]
+        progressed_skills=[]
+        for section in current_courses:
+            completedUnits = section["completedUnits"]
+            units = section["units"]
+            for i in range(completedUnits):
+                unit = units[i]
+                levels = unit["levels"]
+                for l in levels:
+                    level_type = l["type"]
+                    #unit review doesnt contain new words
+                    if level_type in ["chest","unit_review"]:
+                        continue
+                    pathLevelClientData = l["pathLevelClientData"]
+                    finishedSessions = l["finishedSessions"]
+                    if "skillId" in pathLevelClientData:
+                        skillId = pathLevelClientData["skillId"]
+                        new_obj = {
+                            "finishedLevels": 1,
+                            "finishedSessions": finishedSessions,
+                            "skillId": {
+                                "id": skillId
+                            }
+                        }
+                        progressed_skills.append(new_obj)
+                    elif "skillIds" in pathLevelClientData:
+                        skillIds = pathLevelClientData["skillIds"]
+                        for skillId in skillIds:
+                            new_obj = {
+                                "finishedLevels": 1,
+                                "finishedSessions": finishedSessions,
+                                "skillId": {
+                                    "id": skillId
+                                }
+                            }
+                            progressed_skills.append(new_obj)
 
-        return overview
+        #updated URL, default language to be english,
+        current_index = 0
+        data = []
+        while True:
+            overview_url = f"https://www.duolingo.com/2017-06-30/users/{self.user_data.id}/courses/{language_abbr}/{source_language_abbr if source_language_abbr is not None else self.get_user_info()['ui_language']}/learned-lexemes?sortBy=ALPHABETICAL&startIndex={current_index}"
+            overview_request = self._make_req(overview_url, data={
+                "lastTotalLexemeCount": 0,
+                "progressedSkills": progressed_skills
+            })
+            overview = overview_request.json()
+            learnedLexemes = overview['learnedLexemes']
+            data.extend(learnedLexemes)
+            pagination = overview['pagination']
+            totalLexemes = pagination['totalLexemes']
+            if len(data) >= totalLexemes:
+                break
+            #its not my database so i am being wasteful :)
+            nextStartIndex = pagination['nextStartIndex']
+            current_index =nextStartIndex
+        return data
 
     _cloudfront_server_url = None
     _homepage_text = None
