@@ -230,7 +230,7 @@ class Duolingo(object):
             return True
         except AlreadyHaveStoreItemException:
             return False
-        
+
     def buy_weekend_amulet(self):
         """
         figure out the users current learning language
@@ -244,7 +244,6 @@ class Duolingo(object):
             return True
         except AlreadyHaveStoreItemException:
             return False
-    
 
     def _switch_language(self, lang):
         """
@@ -517,9 +516,10 @@ class Duolingo(object):
         # Handy internal function
         def is_word_list_valid(word_list):
             return (
-                len(word_list) < word_count_limit
-                and len(json.dumps(word_list)) < word_json_limit
+                    len(word_list) < word_count_limit
+                    and len(json.dumps(word_list)) < word_json_limit
             )
+
         # Fast return for simple lists
         if is_word_list_valid(words):
             return [words]
@@ -545,7 +545,7 @@ class Duolingo(object):
         except ValueError:
             raise DuolingoException('Could not get translations')
 
-    def get_vocabulary(self, language_abbr=None, source_language_abbr=None):
+    def get_vocabulary(self, language_abbr, source_language_abbr=None):
         """Get overview of user's vocabulary in a language.
 
         :param language_abbr: Language abbreviation of learning language
@@ -558,7 +558,7 @@ class Duolingo(object):
             self._switch_language(language_abbr)
 
         current_courses = self.get_data_by_user_id()["currentCourse"]["pathSectioned"]
-        progressed_skills=[]
+        progressed_skills = []
         for section in current_courses:
             completedUnits = section["completedUnits"]
             units = section["units"]
@@ -567,8 +567,8 @@ class Duolingo(object):
                 levels = unit["levels"]
                 for l in levels:
                     level_type = l["type"]
-                    #unit review doesnt contain new words
-                    if level_type in ["chest","unit_review"]:
+                    # unit review doesnt contain new words
+                    if level_type in ["chest", "unit_review"]:
                         continue
                     pathLevelClientData = l["pathLevelClientData"]
                     finishedSessions = l["finishedSessions"]
@@ -594,11 +594,13 @@ class Duolingo(object):
                             }
                             progressed_skills.append(new_obj)
 
-        #updated URL, default language to be english,
+        # updated URL, default language to be english,
         current_index = 0
         data = []
+        if source_language_abbr is None:
+            source_language_abbr = self.user_data.ui_language
         while True:
-            overview_url = f"https://www.duolingo.com/2017-06-30/users/{self.user_data.id}/courses/{language_abbr}/{source_language_abbr if source_language_abbr is not None else self.get_user_info()['ui_language']}/learned-lexemes?sortBy=ALPHABETICAL&startIndex={current_index}"
+            overview_url = f"https://www.duolingo.com/2017-06-30/users/{self.user_data.id}/courses/{language_abbr}/{source_language_abbr}/learned-lexemes?sortBy=ALPHABETICAL&startIndex={current_index}"
             overview_request = self._make_req(overview_url, data={
                 "lastTotalLexemeCount": 0,
                 "progressedSkills": progressed_skills
@@ -610,9 +612,9 @@ class Duolingo(object):
             totalLexemes = pagination['totalLexemes']
             if len(data) >= totalLexemes:
                 break
-            #its not my database so i am being wasteful :)
+            # its not my database so i am being wasteful :)
             nextStartIndex = pagination['nextStartIndex']
-            current_index =nextStartIndex
+            current_index = nextStartIndex
         return data
 
     _cloudfront_server_url = None
@@ -667,43 +669,15 @@ class Duolingo(object):
         :return: The audio URL for the word.
         :raises DuolingoException: If the word is not found in the user's vocabulary.
         """
-        for vocabulary in self.get_vocabulary(language_abbr if language_abbr else self.get_languages(True)[0]):
+        if not language_abbr:
+            language_abbr = self.get_languages(True)[0]
+        for vocabulary in self.get_vocabulary(language_abbr):
             if vocabulary['text'] == word:
 
                 return vocabulary['audioURL']
         raise DuolingoException("Word not found in vocabulary of user. Please make sure to use the correct language abbreviation. If language_abbr=None the first possible language is used")
 
-    def _populate_voice_url_dictionary(self, lang_abbr):
-        if self.voice_url_dict is None:
-            self.voice_url_dict = {}
-        self.voice_url_dict[lang_abbr] = {}
-        # Get skill IDs
-        skill_ids = []
-        for skill in self.user_data.language_data[lang_abbr]['skills']:
-            skill_ids.append(skill['id'])
-        # Scrape all sessions and create voice url dictionary
-        for skill_id in skill_ids:
-            req_data = {
-                "fromLanguage": "en" if lang_abbr != "en" else "de",
-                "learningLanguage": lang_abbr,
-                "challengeTypes": ["definition", "translate"],
-                "skillId": skill_id,
-                "type": "SKILL_PRACTICE",
-                "juicy": True,
-                "smartTipsVersion": 2
-            }
-            resp = self._make_req("https://www.duolingo.com/2017-06-30/sessions", req_data)
-            if resp.status_code != 200:
-                continue
-            resp_data = resp.json()
-            for challenge in resp_data['challenges']:
-                if "prompt" in challenge and "tts" in challenge:
-                    self._add_to_voice_url_dict(lang_abbr, challenge['prompt'], challenge['tts'])
-                if challenge.get("metadata") and challenge['metadata'].get("non_character_tts"):
-                    for word, url in challenge['metadata']['non_character_tts']['tokens'].items():
-                        self._add_to_voice_url_dict(lang_abbr, word, url)
-                if "tokens" in challenge:
-                    self._add_token_list_to_voice_url_dict(lang_abbr, challenge["tokens"])
+
 
     def _add_token_list_to_voice_url_dict(self, lang_abbr, token_list):
         for token in token_list:
@@ -726,7 +700,6 @@ class Duolingo(object):
                 related_lexemes = word_data['related_lexemes']
                 return [w for w in overview['vocab_overview']
                         if w['lexeme_id'] in related_lexemes]
-
 
     def get_word_definition_by_id(self, lexeme_id):
         """
@@ -766,7 +739,7 @@ class Duolingo(object):
         update_cutoff = round((reported_midnight + time_discrepancy).timestamp())
 
         lessons = [lesson for lesson in daily_progress['xpGains'] if
-                lesson['time'] > update_cutoff]
+                   lesson['time'] > update_cutoff]
 
         return {
             "xp_goal": daily_progress['xpGoal'],
