@@ -715,7 +715,7 @@ class Duolingo(object):
 attrs = [
     'settings', 'languages', 'user_info', 'streak_info',
     'calendar', 'language_progress', 'known_words',
-    'learned_skills', 'known_topics', 'vocabulary'
+    'learned_skills', 'known_topics', 'vocabulary',"friends",
 ]
 
 for attr in attrs:
