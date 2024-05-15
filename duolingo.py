@@ -2,9 +2,11 @@
 import re
 import json
 import random
+import time
 from datetime import datetime, timedelta
 from json import JSONDecodeError
 
+import deprecated
 import requests
 
 __version__ = "0.5.4"
@@ -154,7 +156,7 @@ class Duolingo(object):
         self.username = username
         self.user_data = Struct(**self._get_data())
 
-    def get_leaderboard(self, unit, before):
+    def get_leaderboard(self, unit, before=time.time()):
         """
         Get user's rank in the week in descending order, stream from
         ``https://www.duolingo.com/friendships/leaderboard_activity?unit=week&_=time
@@ -422,20 +424,17 @@ class Duolingo(object):
                   'points', 'fluency_score', 'level']
 
         return self._make_dict(fields, self.user_data.language_data[lang])
-
+    def get_following(self):    #todo write tests for this function
+        return self._make_req(f"https://www.duolingo.com/2017-06-30/friends/users/{self.user_data.id}/following").json()
     def get_friends(self):
-        """Get user's friends."""
-        for k, v in self.user_data.language_data.items():
-            data = []
-            for friend in v['points_ranking_data']:
-                temp = {'username': friend['username'],
-                        'id': friend['id'],
-                        'points': friend['points_data']['total'],
-                        'languages': [i['language_string'] for i in
-                                      friend['points_data']['languages']]}
-                data.append(temp)
+        following = self.get_following()
+        friends = []
+        for follower in following["following"]["users"]:
+            if follower["isFollowing"]:
+                friends.append(
+                    {"username": follower["username"], "id": follower["userId"],"points": follower["totalXp"],"avatar": follower["picture"],"displayName": follower["displayName"]})
 
-            return data
+        return friends
 
     def get_known_words(self, lang):
         """Get a list of all words learned by user in a language."""
@@ -750,7 +749,7 @@ class Duolingo(object):
 
 attrs = [
     'settings', 'languages', 'user_info', 'streak_info',
-    'calendar', 'language_progress', 'friends', 'known_words',
+    'calendar', 'language_progress', 'known_words',
     'learned_skills', 'known_topics', 'vocabulary'
 ]
 

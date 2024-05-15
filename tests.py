@@ -100,10 +100,6 @@ class DuolingoLoginTest(unittest.TestCase):
             assert "username" in friend
             assert "points" in friend
             assert isinstance(friend['points'], int)
-            assert "languages" in friend
-            assert isinstance(friend['languages'], list)
-            for lang in friend['languages']:
-                assert isinstance(lang, str)
 
     def test_get_calendar(self):
         response1 = self.lingo.get_calendar()
