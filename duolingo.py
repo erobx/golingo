@@ -156,41 +156,6 @@ class Duolingo(object):
         self.username = username
         self.user_data = Struct(**self._get_data())
 
-    def get_leaderboard(self, unit, before=time.time()):
-        """
-        Get user's rank in the week in descending order, stream from
-        ``https://www.duolingo.com/friendships/leaderboard_activity?unit=week&_=time
-
-        :param unit: maybe week or month
-        :type unit: str
-        :param before: Datetime in format '2015-07-06 05:42:24'
-        :type before: Union[datetime, str]
-        :rtype: List
-        """
-        if not unit:
-            raise ValueError('Needs unit as argument (week or month)')
-
-        if not before:
-            raise ValueError('Needs str in Datetime format "%Y.%m.%d %H:%M:%S"')
-
-        if isinstance(before, datetime):
-            before = before.strftime("%Y.%m.%d %H:%M:%S")
-
-        url = 'https://www.duolingo.com/friendships/leaderboard_activity?unit={}&_={}'
-        url = url.format(unit, before)
-
-        self.leader_data = self._make_req(url).json()
-        data = []
-        for result in self.get_friends():
-            for value in self.leader_data['ranking']:
-                if result['id'] == int(value):
-                    temp = {'points': int(self.leader_data['ranking'][value]),
-                            'unit': unit,
-                            'id': result['id'],
-                            'username': result['username']}
-                    data.append(temp)
-
-        return sorted(data, key=lambda user: user['points'], reverse=True)
 
     def buy_item(self, item_name, abbr):
         url = 'https://www.duolingo.com/2017-06-30/users/{}/shop-items'
