@@ -384,8 +384,7 @@ class Duolingo(object):
             self._switch_language(lang)
 
         fields = ['streak', 'language_string', 'level_progress',
-                  'num_skills_learned', 'level_percent', 'level_points',
-                  'points_rank', 'next_level', 'level_left', 'language',
+                  'num_skills_learned', 'level_percent', 'level_points','next_level', 'level_left', 'language',
                   'points', 'fluency_score', 'level']
 
         return self._make_dict(fields, self.user_data.language_data[lang])
