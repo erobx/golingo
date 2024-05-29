@@ -3,8 +3,6 @@ import unittest
 from datetime import datetime
 from unittest.mock import patch
 
-from dotenv import load_dotenv
-
 import duolingo
 
 USERNAME = os.environ.get('DUOLINGO_USER', 'ferguslongley')
@@ -254,6 +252,7 @@ class DuolingoLoginTest(unittest.TestCase):
             assert isinstance(response, dict)
 
 
+    @unittest.skip("This feature may no longer be supported in the Duolingo API.")
     def test_get_audio_url(self):
         # Setup
         word = _example_word(self.lang)
