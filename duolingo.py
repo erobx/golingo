@@ -2,11 +2,9 @@
 import re
 import json
 import random
-import time
 from datetime import datetime, timedelta
 from json import JSONDecodeError
 
-import deprecated
 import requests
 
 __version__ = "0.5.4"
@@ -723,7 +721,7 @@ class Duolingo(object):
 attrs = [
     'settings', 'languages', 'user_info', 'streak_info',
     'calendar', 'language_progress', 'known_words',
-    'learned_skills', 'known_topics', 'vocabulary',"friends",
+    'learned_skills', 'known_topics', 'vocabulary', 'friends',
 ]
 
 for attr in attrs:
