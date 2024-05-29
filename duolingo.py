@@ -655,6 +655,14 @@ class Duolingo(object):
             self.voice_url_dict[lang_abbr][word] = set()
         self.voice_url_dict[lang_abbr][word].add(url)
 
+    def get_all_words_of_skill(self,skill_name,language_abbr=None):
+        skill_name = skill_name.lower()
+        if language_abbr == None:
+            language_abbr = list(self.user_data.language_data.keys())[0]
+        for skill in self.get_learned_skills(language_abbr):
+            if skill['title'].lower() == skill_name or skill['short'].lower() == skill_name:
+                return skill['words']
+        raise Exception("Skill not found")
     @deprecated.deprecated(reason="Duolingo API doesn't deliver info's any more.")
     def get_related_words(self, word, language_abbr=None):
         overview = self.get_vocabulary(language_abbr)
