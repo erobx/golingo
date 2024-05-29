@@ -655,6 +655,7 @@ class Duolingo(object):
             self.voice_url_dict[lang_abbr][word] = set()
         self.voice_url_dict[lang_abbr][word].add(url)
 
+    @deprecated.deprecated(reason="Duolingo API doesn't deliver info's any more.")
     def get_related_words(self, word, language_abbr=None):
         overview = self.get_vocabulary(language_abbr)
 
