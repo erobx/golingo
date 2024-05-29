@@ -5,7 +5,6 @@ import random
 from datetime import datetime, timedelta
 from json import JSONDecodeError
 
-import deprecated
 import requests
 
 __version__ = "0.5.4"
