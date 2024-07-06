@@ -5,6 +5,7 @@ import random
 from datetime import datetime, timedelta
 from json import JSONDecodeError
 
+import deprecated
 import requests
 
 __version__ = "0.5.4"
@@ -154,41 +155,6 @@ class Duolingo(object):
         self.username = username
         self.user_data = Struct(**self._get_data())
 
-    def get_leaderboard(self, unit, before):
-        """
-        Get user's rank in the week in descending order, stream from
-        ``https://www.duolingo.com/friendships/leaderboard_activity?unit=week&_=time
-
-        :param unit: maybe week or month
-        :type unit: str
-        :param before: Datetime in format '2015-07-06 05:42:24'
-        :type before: Union[datetime, str]
-        :rtype: List
-        """
-        if not unit:
-            raise ValueError('Needs unit as argument (week or month)')
-
-        if not before:
-            raise ValueError('Needs str in Datetime format "%Y.%m.%d %H:%M:%S"')
-
-        if isinstance(before, datetime):
-            before = before.strftime("%Y.%m.%d %H:%M:%S")
-
-        url = 'https://www.duolingo.com/friendships/leaderboard_activity?unit={}&_={}'
-        url = url.format(unit, before)
-
-        self.leader_data = self._make_req(url).json()
-        data = []
-        for result in self.get_friends():
-            for value in self.leader_data['ranking']:
-                if result['id'] == int(value):
-                    temp = {'points': int(self.leader_data['ranking'][value]),
-                            'unit': unit,
-                            'id': result['id'],
-                            'username': result['username']}
-                    data.append(temp)
-
-        return sorted(data, key=lambda user: user['points'], reverse=True)
 
     def buy_item(self, item_name, abbr):
         url = 'https://www.duolingo.com/2017-06-30/users/{}/shop-items'
@@ -417,25 +383,21 @@ class Duolingo(object):
             self._switch_language(lang)
 
         fields = ['streak', 'language_string', 'level_progress',
-                  'num_skills_learned', 'level_percent', 'level_points',
-                  'points_rank', 'next_level', 'level_left', 'language',
+                  'num_skills_learned', 'level_percent', 'level_points','next_level', 'level_left', 'language',
                   'points', 'fluency_score', 'level']
 
         return self._make_dict(fields, self.user_data.language_data[lang])
-
+    def get_following(self):    #todo write tests for this function
+        return self._make_req(f"https://www.duolingo.com/2017-06-30/friends/users/{self.user_data.id}/following").json()
     def get_friends(self):
-        """Get user's friends."""
-        for k, v in self.user_data.language_data.items():
-            data = []
-            for friend in v['points_ranking_data']:
-                temp = {'username': friend['username'],
-                        'id': friend['id'],
-                        'points': friend['points_data']['total'],
-                        'languages': [i['language_string'] for i in
-                                      friend['points_data']['languages']]}
-                data.append(temp)
+        following = self.get_following()
+        friends = []
+        for follower in following["following"]["users"]:
+            if follower["isFollowing"]:
+                friends.append(
+                    {"username": follower["username"], "id": follower["userId"],"points": follower["totalXp"],"avatar": follower["picture"],"displayName": follower["displayName"]})
 
-            return data
+        return friends
 
     def get_known_words(self, lang):
         """Get a list of all words learned by user in a language."""
@@ -692,6 +654,15 @@ class Duolingo(object):
             self.voice_url_dict[lang_abbr][word] = set()
         self.voice_url_dict[lang_abbr][word].add(url)
 
+    def get_all_words_of_skill(self,skill_name,language_abbr=None):
+        skill_name = skill_name.lower()
+        if language_abbr == None:
+            language_abbr = list(self.user_data.language_data.keys())[0]
+        for skill in self.get_learned_skills(language_abbr):
+            if skill['title'].lower() == skill_name or skill['short'].lower() == skill_name:
+                return skill['words']
+        raise Exception("Skill not found")
+    @deprecated.deprecated(reason="Duolingo API doesn't deliver info's any more.")
     def get_related_words(self, word, language_abbr=None):
         overview = self.get_vocabulary(language_abbr)
 
@@ -750,8 +721,8 @@ class Duolingo(object):
 
 attrs = [
     'settings', 'languages', 'user_info', 'streak_info',
-    'calendar', 'language_progress', 'friends', 'known_words',
-    'learned_skills', 'known_topics', 'vocabulary'
+    'calendar', 'language_progress', 'known_words',
+    'learned_skills', 'known_topics', 'vocabulary', 'friends',
 ]
 
 for attr in attrs:

@@ -98,10 +98,6 @@ class DuolingoLoginTest(unittest.TestCase):
             assert "username" in friend
             assert "points" in friend
             assert isinstance(friend['points'], int)
-            assert "languages" in friend
-            assert isinstance(friend['languages'], list)
-            for lang in friend['languages']:
-                assert isinstance(lang, str)
 
     def test_get_calendar(self):
         response1 = self.lingo.get_calendar()
@@ -122,17 +118,6 @@ class DuolingoLoginTest(unittest.TestCase):
         assert "daily_goal" in response
         assert "streak_extended_today" in response
 
-    @unittest.skip("This feature may no longer be supported in the Duolingo API.")
-    def test_get_leaderboard(self):
-        response1 = self.lingo.get_leaderboard('week', datetime.now())
-        response2 = self.lingo.get_leaderboard('month', datetime.now())
-        for response in [response1, response2]:
-            assert isinstance(response, list)
-            for item in response:
-                assert "points" in item
-                assert "unit" in item
-                assert "id" in item
-                assert "username" in item
 
     def test_get_language_details(self):
         language = self.lingo.get_language_from_abbr(self.lang)
