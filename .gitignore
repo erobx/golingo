@@ -6,3 +6,4 @@ duolingo_api.egg-info
 dev
 dev/*
 dist/
+docs/_*

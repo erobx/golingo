@@ -20,5 +20,5 @@ See [USAGE.md](USAGE.md)
 
 ## Contributing
 
-If you'd like to contribute, standby for contributing instructions. Feel free to open up an issue in the mean time. If you'd like to contribute intensively, consider taking on ownership of the library as an alternative.
+See [CONTRIBUTING.md](CONTRIBUTING.md)
 
