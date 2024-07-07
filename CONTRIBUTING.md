@@ -12,9 +12,10 @@ The following principles help keep the code as easy to maintain and quick to rev
 
 ## Running the Tests
 
-You'll need to define two environment variables to run the tests:
+You'll need to define two environment variables to run the project's integration tests:
   * `MY_DUOLINGO_JWT`: A Duolingo JWT token.
   * `MY_FAVORITE_LANGUAGE_ABBREVIATION`: A language abbreviation for a language that you've got some lessons/words learned in. For example `es` for Spanish.
+  * Additionally you must add the course **High Valyrian** in Duolingo in order for the integration tests to work, although you don't need to do any study in the this course.
 
 You can then run: `$ python -m unittest discover -s . -p tests.py`
 
