@@ -4,7 +4,6 @@ import doctest
 
 import duolingo
 
-MY_DUOLINGO_USERNAME = os.environ['MY_DUOLINGO_USERNAME']
 MY_DUOLINGO_JWT = os.environ['MY_DUOLINGO_JWT']
 MY_FAVORITE_LANGUAGE_ABBREVIATION = os.environ['MY_FAVORITE_LANGUAGE_ABBREVIATION']
 
@@ -16,9 +15,8 @@ def load_tests(_, tests, __):
             globs={
                 'duolingo': duolingo,
                 'MY_DUOLINGO_JWT': MY_DUOLINGO_JWT,
-                'MY_DUOLINGO_USERNAME': MY_DUOLINGO_USERNAME,
                 'MY_FAVORITE_LANGUAGE_ABBREVIATION': MY_FAVORITE_LANGUAGE_ABBREVIATION,
-                'lingo': duolingo.Duolingo(MY_DUOLINGO_USERNAME, jwt=MY_DUOLINGO_JWT),
+                'lingo': duolingo.Duolingo(jwt=MY_DUOLINGO_JWT),
             },
             optionflags=doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS,
         )
