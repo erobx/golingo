@@ -1,24 +1,18 @@
 package duolingo
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
 	"log"
 	"net/http"
-	//"github.com/golang-jwt/jwt/v5"
+	"os"
 )
 
 type Duolingo struct {
 	BaseUrl   string
 	Session   *http.Client
 	UserAgent string
-}
-
-type Login struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
 }
 
 func NewDuolingo(url string) Duolingo {
@@ -29,44 +23,78 @@ func NewDuolingo(url string) Duolingo {
 	}
 }
 
-func NewLogin(username, password string) *Login {
-	return &Login{
-		Username: username,
-		Password: password,
+func setAuthHeader(req *http.Request, token string) *http.Request {
+	reqValue := fmt.Sprintf("Bearer %s", token)
+	req.Header.Set("Authorization", reqValue)
+	return req
+}
+
+func dumpUserData(data []byte) {
+	f, _ := os.Create("user.txt")
+	defer f.Close()
+	_, err := f.Write(data)
+	if err != nil {
+		log.Fatal(err)
 	}
 }
 
-func (d Duolingo) Login(username, password string) {
-	url := fmt.Sprintf(d.BaseUrl, "/login")
+func (d Duolingo) getUserId(username, token string) int {
+	userUrl := fmt.Sprintf("%s/users/%s", d.BaseUrl, username)
+	req, err := http.NewRequest("GET", userUrl, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	req = setAuthHeader(req, token)
 
-	out, err := json.Marshal(NewLogin(username, password))
+	resp, err := d.Session.Do(req)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(out))
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	res, err := d.Session.Do(req)
+	var v map[string]interface{}
+	err = json.Unmarshal(body, &v)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	if res.StatusCode != 200 {
-		log.Fatal(res.Status)
+	fmt.Println(v["language_data"])
+
+	tmpId, ok := v["id"].(float64)
+	if !ok {
+		log.Fatal("couldn't get user id")
 	}
 
-	body, err := io.ReadAll(res.Body)
+	userId := int(tmpId)
+	return userId
+}
+
+func (d Duolingo) GetVocab(username, token, abbr string) {
+	userId := d.getUserId(username, token)
+	currIndex := 0
+	vocabUrl := fmt.Sprintf("%s/2017-06-30/users/%d/courses/%s/en/learned-lexemes?sortBy=ALPHABETICAL&startIndex=%d", d.BaseUrl, userId, abbr, currIndex)
+	req, err := http.NewRequest("GET", vocabUrl, nil)
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println("Successful login")
+	req = setAuthHeader(req, token)
+
+	resp, err := d.Session.Do(req)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	var v map[string]interface{}
+	json.Unmarshal(body, &v)
+
 	fmt.Println(string(body))
-	fmt.Println(res.Header["jwt_token"])
-}
-
-func (d Duolingo) GetVocab() {
-
 }

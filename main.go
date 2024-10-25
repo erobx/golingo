@@ -1,13 +1,24 @@
 package main
 
 import (
+	"os"
+
 	"github.com/erobx/golingo/duolingo"
+	"github.com/joho/godotenv"
 )
 
-const jwt = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjYzMDcyMDAwMDAsImlhdCI6MCwic3ViIjo1Mzg2MjYzNDl9.LloQTnVPcsmQbboPtUdyT8FVxapdLrH8XDcMZWmmjnY"
+const (
+	baseUrl = "https://www.duolingo.com"
+	abbr    = "ES"
+)
 
 func main() {
-	duo := duolingo.NewDuolingo("https://www.duolingo.com")
-
-	login, err := duo.Login("", "")
+	err := godotenv.Load()
+	if err != nil {
+		os.Exit(1)
+	}
+	username := os.Getenv("DUO_USERNAME")
+	token := os.Getenv("DUO_JWT")
+	duo := duolingo.NewDuolingo(baseUrl)
+	duo.GetVocab(username, token, abbr)
 }
