@@ -13,14 +13,17 @@ type Duolingo struct {
 	BaseUrl   string
 	Session   *http.Client
 	UserAgent string
+	userData  map[string]interface{}
 }
 
-func NewDuolingo(url string) Duolingo {
-	return Duolingo{
+func NewDuolingo(username, token, url string) *Duolingo {
+	duo := &Duolingo{
 		BaseUrl:   url,
 		Session:   &http.Client{},
 		UserAgent: "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.116 Safari/537.36",
 	}
+	duo.setUserData(username, token)
+	return duo
 }
 
 func setAuthHeader(req *http.Request, token string) *http.Request {
@@ -29,16 +32,34 @@ func setAuthHeader(req *http.Request, token string) *http.Request {
 	return req
 }
 
-func dumpUserData(data []byte) {
-	f, _ := os.Create("user.txt")
+func dumpUserDataAsString(data map[string]struct{}) {
+	f, _ := os.Create("user_vocab.txt")
+	defer f.Close()
+	//for i, s := range data {
+	//	if i == len(data)-1 {
+	//		f.WriteString(s)
+	//	} else {
+	//		s = s + ", "
+	//		f.WriteString(s)
+	//	}
+	//}
+	fmt.Println("success writing user vocab")
+}
+
+func dumpUserDataAsBytes(data []byte) {
+	f, _ := os.Create("user_vocab.txt")
 	defer f.Close()
 	_, err := f.Write(data)
 	if err != nil {
 		log.Fatal(err)
 	}
+	fmt.Println("success writing user vocab")
 }
 
-func (d Duolingo) getUserId(username, token string) int {
+// keys from main user data request
+// learning_language, languages, language_data, id
+
+func (d *Duolingo) setUserData(username, token string) {
 	userUrl := fmt.Sprintf("%s/users/%s", d.BaseUrl, username)
 	req, err := http.NewRequest("GET", userUrl, nil)
 	if err != nil {
@@ -56,15 +77,18 @@ func (d Duolingo) getUserId(username, token string) int {
 		log.Fatal(err)
 	}
 
-	var v map[string]interface{}
-	err = json.Unmarshal(body, &v)
+	var data map[string]interface{}
+	err = json.Unmarshal(body, &data)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	fmt.Println(v["language_data"])
+	d.userData = data
+}
 
-	tmpId, ok := v["id"].(float64)
+func (d *Duolingo) getUserId() int {
+	// do this since json always returns 64-bit
+	tmpId, ok := d.userData["id"].(float64)
 	if !ok {
 		log.Fatal("couldn't get user id")
 	}
@@ -73,28 +97,56 @@ func (d Duolingo) getUserId(username, token string) int {
 	return userId
 }
 
-func (d Duolingo) GetVocab(username, token, abbr string) {
-	userId := d.getUserId(username, token)
-	currIndex := 0
-	vocabUrl := fmt.Sprintf("%s/2017-06-30/users/%d/courses/%s/en/learned-lexemes?sortBy=ALPHABETICAL&startIndex=%d", d.BaseUrl, userId, abbr, currIndex)
-	req, err := http.NewRequest("GET", vocabUrl, nil)
-	if err != nil {
-		log.Fatal(err)
+func (d *Duolingo) GetKnownWords(abbr string) map[string]struct{} {
+	lang_data := d.userData["language_data"].(map[string]interface{})
+	lang_data = lang_data[abbr].(map[string]interface{})
+	skills := lang_data["skills"].([]interface{})
+
+	vocab := make(map[string]struct{})
+
+	for _, skill := range skills {
+		topic := skill.(map[string]interface{})
+		if topic["learned"] == true {
+			wordSlice := skill.(map[string]interface{})["words"]
+			interSlice := wordSlice.([]interface{})
+			for _, item := range interSlice {
+				word := item.(string)
+				vocab[word] = struct{}{}
+			}
+		}
 	}
-	req = setAuthHeader(req, token)
 
-	resp, err := d.Session.Do(req)
-	if err != nil {
-		log.Fatal(err)
-	}
+	return vocab
+}
 
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		log.Fatal(err)
-	}
+type Overview struct {
+	lastTotalLexemeCount int           `json:"lastTotalLexemeCount"`
+	progressedSkills     []interface{} `json:"progressedSkills"`
+}
 
-	var v map[string]interface{}
-	json.Unmarshal(body, &v)
+func (d *Duolingo) GetVocab(abbr string) {
+	//currIndex := 0
+	//data := make([]string, 0)
+	//overviewUrl := fmt.Sprintf("%s/2017-06-30/users/%d/courses/%s/en/learned-lexemes?sortBy=ALPHABETICAL&startIndex=%d", d.BaseUrl, userId, abbr, currIndex)
+	//req, err := http.NewRequest("GET", overviewUrl, nil)
+	//if err != nil {
+	//	log.Fatal(err)
+	//}
+	//req = setAuthHeader(req, token)
 
-	fmt.Println(string(body))
+	//resp, err := d.Session.Do(req)
+	//if err != nil {
+	//	log.Fatal(err)
+	//}
+
+	//body, err := io.ReadAll(resp.Body)
+	//if err != nil {
+	//	log.Fatal(err)
+	//}
+
+	//var v map[string]interface{}
+	//json.Unmarshal(body, &v)
+
+	//fmt.Println(string(body))
+
 }

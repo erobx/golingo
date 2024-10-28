@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/erobx/golingo/duolingo"
@@ -9,7 +10,7 @@ import (
 
 const (
 	baseUrl = "https://www.duolingo.com"
-	abbr    = "ES"
+	abbr    = "es"
 )
 
 func main() {
@@ -17,8 +18,17 @@ func main() {
 	if err != nil {
 		os.Exit(1)
 	}
+
 	username := os.Getenv("DUO_USERNAME")
 	token := os.Getenv("DUO_JWT")
-	duo := duolingo.NewDuolingo(baseUrl)
-	duo.GetVocab(username, token, abbr)
+	duo := duolingo.NewDuolingo(username, token, baseUrl)
+
+	vocab := duo.GetKnownWords(abbr)
+
+	_, ok := vocab["farmacia"]
+	if !ok {
+		fmt.Println("working")
+	}
+
+	//fmt.Println("You've learned:", len(vocab), "vocab words!")
 }

@@ -2,6 +2,7 @@
 .editorconfig
 .env
 .env.local
+*.txt
 
 # Build
 bin/
