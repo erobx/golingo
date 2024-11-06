@@ -21,14 +21,10 @@ func main() {
 
 	username := os.Getenv("DUO_USERNAME")
 	token := os.Getenv("DUO_JWT")
-	duo := duolingo.NewDuolingo(username, token, baseUrl)
+	duo := duolingo.NewDuolingo(username, token, baseUrl, abbr)
 
-	vocab := duo.GetKnownWords(abbr)
+	vocab := duo.GetVocab(token, abbr)
+	fmt.Println(vocab)
 
-	_, ok := vocab["farmacia"]
-	if !ok {
-		fmt.Println("working")
-	}
-
-	//fmt.Println("You've learned:", len(vocab), "vocab words!")
+	fmt.Print()
 }
