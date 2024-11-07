@@ -56,6 +56,7 @@ func (d *Duolingo) GetKnownWords() map[string]struct{} {
 
 func (d *Duolingo) GetVocab(token, abbr string) []interface{} {
 	pSkills := d.getProgressedSkills()
+	fmt.Println(pSkills)
 
 	currIndex := 0
 	data := make([]interface{}, 0)
@@ -63,12 +64,9 @@ func (d *Duolingo) GetVocab(token, abbr string) []interface{} {
 	for {
 		overviewUrl := fmt.Sprintf("%s/2017-06-30/users/%d/courses/%s/en/learned-lexemes?sortBy=ALPHABETICAL&startIndex=%d", d.BaseUrl, d.UserData.ID, abbr, currIndex)
 
-		reqBody := struct {
-			LastTotalLexemeCount int           `json:"lastTotalLexemeCount"`
-			ProgressedSkills     []interface{} `json:"progressedSkills"`
-		}{
-			0,
-			pSkills,
+		reqBody := VocabRequest{
+			LastTotalLexemeCount: 0,
+			ProgressedSkills:     pSkills,
 		}
 
 		out, err := json.Marshal(reqBody)

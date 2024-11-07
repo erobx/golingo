@@ -240,9 +240,9 @@ type EsData struct {
 //skills
 
 type AbbrData struct {
-	NumSkillsLearned interface{} `json:"num_skills_learned"`
-	LanguageStrength interface{} `json:"language_strength"`
-	Skills           []Skill     `json:"skills"`
+	NumSkillsLearned int     `json:"num_skills_learned"`
+	LanguageStrength float64 `json:"language_strength"`
+	Skills           []Skill `json:"skills"`
 }
 
 //practice_recommended
@@ -267,4 +267,9 @@ type Overview struct {
 type Pagination struct {
 	TotalLexemes   int `json:"totalLexemes"`
 	NextStartIndex int `json:"nextStartIndex"`
+}
+
+type VocabRequest struct {
+	LastTotalLexemeCount int           `json:"lastTotalLexemeCount"`
+	ProgressedSkills     []interface{} `json:"progressedSkills"`
 }
