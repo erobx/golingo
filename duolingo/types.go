@@ -283,3 +283,8 @@ type ProgressedSkill struct {
 type SkillId struct {
 	Id string `json:"id"`
 }
+
+type WordInfo struct {
+	Text         string   `json:"text"`
+	Translations []string `json:"translations"`
+}
