@@ -6,7 +6,6 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"os"
 )
 
 func setAuthHeader(req *http.Request, token string) *http.Request {
@@ -69,33 +68,9 @@ func (d *Duolingo) setDataFromId(token string) {
 	d.UserIdData = data
 }
 
-func dumpUserDataAsString(data map[string]struct{}) {
-	f, _ := os.Create("user_vocab.txt")
-	defer f.Close()
-	//for i, s := range data {
-	//	if i == len(data)-1 {
-	//		f.WriteString(s)
-	//	} else {
-	//		s = s + ", "
-	//		f.WriteString(s)
-	//	}
-	//}
-	fmt.Println("success writing user vocab")
-}
-
-func dumpUserDataAsBytes(data []byte) {
-	f, _ := os.Create("user_vocab.txt")
-	defer f.Close()
-	_, err := f.Write(data)
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Println("success writing user vocab")
-}
-
-func (d *Duolingo) getProgressedSkills() []interface{} {
+func (d *Duolingo) getProgressedSkills() []ProgressedSkill {
 	currentCourses := d.UserIdData.CurrentCourse.PathsSectioned
-	progressedSkills := make([]interface{}, 0)
+	progressedSkills := make([]ProgressedSkill, 0)
 
 	for _, section := range currentCourses {
 		completedUnits := section.CompletedUnits
@@ -113,33 +88,22 @@ func (d *Duolingo) getProgressedSkills() []interface{} {
 				// maybe check for if skillId in pathLevelClientData
 				if pathLevelClientData.SkillId != "" {
 					skillId := pathLevelClientData.SkillId
-					newObj := struct {
-						finishedLevels   int
-						finishedSessions int
-						skillId          interface{}
-					}{
+					newObj := ProgressedSkill{
 						1,
 						finishedSessions,
-						struct {
-							id string
-						}{
+						SkillId{
 							skillId,
 						},
 					}
+
 					progressedSkills = append(progressedSkills, newObj)
 				} else if pathLevelClientData.SkillIds != nil {
 					skillIds := pathLevelClientData.SkillIds
 					for _, skillId := range skillIds {
-						newObj := struct {
-							finishedLevels   int
-							finishedSessions int
-							skillId          interface{}
-						}{
+						newObj := ProgressedSkill{
 							1,
 							finishedSessions,
-							struct {
-								id string
-							}{
+							SkillId{
 								skillId,
 							},
 						}

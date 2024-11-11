@@ -36,9 +36,6 @@ func (ud *UserData) SetLang(abbr string) {
 	}
 }
 
-func (d *Duolingo) Placeholder() {
-}
-
 func (d *Duolingo) GetKnownWords() map[string]struct{} {
 	skills := d.UserData.LanguageData.Abbr.Skills
 	vocab := map[string]struct{}{}
@@ -56,7 +53,6 @@ func (d *Duolingo) GetKnownWords() map[string]struct{} {
 
 func (d *Duolingo) GetVocab(token, abbr string) []interface{} {
 	pSkills := d.getProgressedSkills()
-	fmt.Println(pSkills)
 
 	currIndex := 0
 	data := make([]interface{}, 0)
@@ -79,13 +75,12 @@ func (d *Duolingo) GetVocab(token, abbr string) []interface{} {
 			log.Fatal(err)
 		}
 		req = setAuthHeader(req, token)
+		req.Header.Set("Content-Type", "application/json")
 
 		resp, err := d.Session.Do(req)
 		if err != nil {
 			log.Fatal(err)
 		}
-
-		fmt.Println(resp)
 
 		body, err := io.ReadAll(resp.Body)
 		if err != nil {
@@ -98,6 +93,7 @@ func (d *Duolingo) GetVocab(token, abbr string) []interface{} {
 		learnedLexemes := overview.LearnedLexemes
 		data = append(data, learnedLexemes)
 		totalLexemes := overview.Pagination.TotalLexemes
+		fmt.Printf("Current Index: %d  Data len: %d  Total: %d\n", currIndex, len(data), totalLexemes)
 		if len(data) >= totalLexemes {
 			break
 		}

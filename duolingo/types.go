@@ -270,6 +270,16 @@ type Pagination struct {
 }
 
 type VocabRequest struct {
-	LastTotalLexemeCount int           `json:"lastTotalLexemeCount"`
-	ProgressedSkills     []interface{} `json:"progressedSkills"`
+	LastTotalLexemeCount int               `json:"lastTotalLexemeCount"`
+	ProgressedSkills     []ProgressedSkill `json:"progressedSkills"`
+}
+
+type ProgressedSkill struct {
+	FinishedLevels   int     `json:"finishedLevels"`
+	FinishedSessions int     `json:"finishedSessions"`
+	SkillId          SkillId `json:"skillId"`
+}
+
+type SkillId struct {
+	Id string `json:"id"`
 }
