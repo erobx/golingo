@@ -12,6 +12,7 @@ import (
 type Duolingo struct {
 	BaseUrl    string
 	Session    *http.Client
+	Token      string
 	UserAgent  string
 	UserData   UserData
 	UserIdData UserIdData
@@ -21,10 +22,11 @@ func NewDuolingo(username, token, url, abbr string) *Duolingo {
 	duo := &Duolingo{
 		BaseUrl:   url,
 		Session:   &http.Client{},
+		Token:     token,
 		UserAgent: "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.116 Safari/537.36",
 	}
-	duo.setUserData(username, token)
-	duo.setDataFromId(token)
+	duo.setUserData(username)
+	duo.setDataFromId()
 	return duo
 }
 
@@ -51,7 +53,7 @@ func (d *Duolingo) GetKnownWords() map[string]struct{} {
 	return vocab
 }
 
-func (d *Duolingo) GetVocab(token, abbr string) []interface{} {
+func (d *Duolingo) GetVocab(abbr string) []interface{} {
 	pSkills := d.getProgressedSkills()
 
 	currIndex := 0
@@ -74,7 +76,7 @@ func (d *Duolingo) GetVocab(token, abbr string) []interface{} {
 		if err != nil {
 			log.Fatal(err)
 		}
-		req = setAuthHeader(req, token)
+		req = setAuthHeader(req, d.Token)
 		req.Header.Set("Content-Type", "application/json")
 
 		resp, err := d.Session.Do(req)
@@ -92,12 +94,12 @@ func (d *Duolingo) GetVocab(token, abbr string) []interface{} {
 
 		learnedLexemes := overview.LearnedLexemes
 		data = append(data, learnedLexemes)
-		totalLexemes := overview.Pagination.TotalLexemes
-		if len(data) >= totalLexemes {
-			break
-		}
 
 		currIndex = overview.Pagination.NextStartIndex
+
+		if currIndex == 0 {
+			break
+		}
 	}
 
 	return data

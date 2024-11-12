@@ -14,13 +14,13 @@ func setAuthHeader(req *http.Request, token string) *http.Request {
 	return req
 }
 
-func (d *Duolingo) setUserData(username, token string) {
+func (d *Duolingo) setUserData(username string) {
 	userUrl := fmt.Sprintf("%s/users/%s", d.BaseUrl, username)
 	req, err := http.NewRequest("GET", userUrl, nil)
 	if err != nil {
 		log.Fatal(err)
 	}
-	req = setAuthHeader(req, token)
+	req = setAuthHeader(req, d.Token)
 
 	resp, err := d.Session.Do(req)
 	if err != nil {
@@ -41,13 +41,13 @@ func (d *Duolingo) setUserData(username, token string) {
 	d.UserData = data
 }
 
-func (d *Duolingo) setDataFromId(token string) {
+func (d *Duolingo) setDataFromId() {
 	userUrl := fmt.Sprintf("%s/2017-06-30/users/%d", d.BaseUrl, d.UserData.ID)
 	req, err := http.NewRequest("GET", userUrl, nil)
 	if err != nil {
 		log.Fatal(err)
 	}
-	req = setAuthHeader(req, token)
+	req = setAuthHeader(req, d.Token)
 
 	resp, err := d.Session.Do(req)
 	if err != nil {
