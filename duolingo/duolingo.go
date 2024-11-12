@@ -93,7 +93,6 @@ func (d *Duolingo) GetVocab(token, abbr string) []interface{} {
 		learnedLexemes := overview.LearnedLexemes
 		data = append(data, learnedLexemes)
 		totalLexemes := overview.Pagination.TotalLexemes
-		fmt.Printf("Current Index: %d  Data len: %d  Total: %d\n", currIndex, len(data), totalLexemes)
 		if len(data) >= totalLexemes {
 			break
 		}
