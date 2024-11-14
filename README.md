@@ -1,4 +1,4 @@
-# Duolingo
+# Golingo
 
 **Unofficial** library for interacting with the Duolingo APIs.
 
